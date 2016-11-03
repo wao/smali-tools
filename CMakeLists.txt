@@ -7,4 +7,7 @@ set (smali-tools_VERSION_MAJOR 0)
 set (smali-tools_VERSION_MINOR 1)
  
 # does this system provide the log and exp functions?
-include (${CMAKE_ROOT}/cmake/FindAntlr2.cmake
+include (${CMAKE_ROOT}/cmake/FindAntlr2.cmake)
+
+
+
