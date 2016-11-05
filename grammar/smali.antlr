@@ -1,0 +1,56 @@
+options{
+    language="Cpp";
+}
+
+class SmaliLexer extends Lexer;
+options{
+    k=2;
+}
+
+tokens{
+    CLASS = ".class";
+    SUPER = ".super";
+    SOURCE = ".source";
+    PUBLIC = "public";
+    PRIVATE = "private";
+    FINAL = "final";
+    IMPLEMENTS = ".implements";
+    FIELDS = ".field";
+    METHOD_STR = "method";
+    METHOD = ".method";
+    LOCALS = ".locals";
+    PROLOGUE = ".prologue";
+    LINE = ".line";
+    CONSTRUCTOR = "constructor";
+    END = ".end";
+}
+
+COMMENT : '#' (
+                  options {
+                  generateAmbigWarnings=false;
+                  } :
+                  { LA(1) != '\n' }? . 
+              )* '\n';
+
+STRING : DOUBLE_QUOTATION_MARK! (
+                 options {
+                 generateAmbigWarnings=false;
+                 } :
+                 { LA(1) != '"' }? .
+                 )* DOUBLE_QUOTATION_MARK!;
+
+protected
+
+CHAR : 'a'..'z' | 'A'..'Z';
+DIGIT : '0'..'9';
+ID : ( '_' | CHAR ) ( CHAR | DIGIT | '_' | '$' )*;
+DOUBLE_QUOTATION_MARK : '"';
+
+class SmaliParser extends Parser;
+
+classDecl : CLASS visualDecl className;
+superDecl : SUPER className;
+className : ID ( "/" ID )* ";";
+
+protected
+visualDecl : PUBLIC  | PRIVATE;
