@@ -18,6 +18,9 @@
 #include <cctype>
 #endif
 
+#include<cstdio>
+#include<cstring>
+
 #if ( _MSC_VER == 1200 )
 // VC6 seems to need this
 // note that this is not a standard C++ include file.

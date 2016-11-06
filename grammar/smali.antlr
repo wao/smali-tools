@@ -8,22 +8,26 @@ options{
 }
 
 tokens{
-    CLASS = ".class";
-    SUPER = ".super";
-    SOURCE = ".source";
     PUBLIC = "public";
     PRIVATE = "private";
     FINAL = "final";
-    IMPLEMENTS = ".implements";
-    FIELDS = ".field";
     METHOD_STR = "method";
-    METHOD = ".method";
-    LOCALS = ".locals";
-    PROLOGUE = ".prologue";
-    LINE = ".line";
     CONSTRUCTOR = "constructor";
-    END = ".end";
 }
+CLASS : ".class";
+SUPER : ".super";
+SOURCE : ".source";
+IMPLEMENTS : ".implements";
+FIELDS : ".field";
+METHOD : ".method";
+LOCALS : ".locals";
+PROLOGUE : ".prologue";
+LINE : ".line";
+END : ".end";
+
+WS : ( ' ' | '\t' | '\n' { newline(); } | '\r' )+
+     { $setType(antlr::Token::SKIP); }
+   ;
 
 COMMENT : '#' (
                   options {
@@ -39,6 +43,9 @@ STRING : DOUBLE_QUOTATION_MARK! (
                  { LA(1) != '"' }? .
                  )* DOUBLE_QUOTATION_MARK!;
 
+SLASH : '/';
+
+SEMICOLON : ';'; 
 protected
 
 CHAR : 'a'..'z' | 'A'..'Z';
@@ -50,7 +57,7 @@ class SmaliParser extends Parser;
 
 classDecl : CLASS visualDecl className;
 superDecl : SUPER className;
-className : ID ( "/" ID )* ";";
+className : ID ( SLASH ID )* SEMICOLON;
 
 protected
 visualDecl : PUBLIC  | PRIVATE;
