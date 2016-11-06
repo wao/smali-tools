@@ -1,10 +1,16 @@
+header "post_include_hpp" {
+    // gets inserted after antlr generated includes in the header file
+     // outside any generated namespace specifications
+#include "antlr/RecognitionException.hpp"
+}
+
 options{
     language="Cpp";
 }
 
 class SmaliLexer extends Lexer;
 options{
-    k=2;
+    k=3;
 }
 
 tokens{
@@ -13,17 +19,21 @@ tokens{
     FINAL = "final";
     METHOD_STR = "method";
     CONSTRUCTOR = "constructor";
+    ANNOTATION_STR = "annotation";
+    VALUE = "value";
 }
+
 CLASS : ".class";
 SUPER : ".super";
 SOURCE : ".source";
 IMPLEMENTS : ".implements";
-FIELDS : ".field";
+FIELD : ".field";
 METHOD : ".method";
 LOCALS : ".locals";
 PROLOGUE : ".prologue";
 LINE : ".line";
 END : ".end";
+ANNOTATION : ".annotation";
 
 WS : ( ' ' | '\t' | '\n' { newline(); } | '\r' )+
      { $setType(antlr::Token::SKIP); }
@@ -44,6 +54,10 @@ STRING : DOUBLE_QUOTATION_MARK! (
                  )* DOUBLE_QUOTATION_MARK!;
 
 SLASH : '/';
+COLON : ':';
+ASSIGN : '=';
+LEFT_BRACE : '{';
+RIGHT_BRACE : '}';
 
 SEMICOLON : ';'; 
 protected
@@ -54,10 +68,46 @@ ID : ( '_' | CHAR ) ( CHAR | DIGIT | '_' | '$' )*;
 DOUBLE_QUOTATION_MARK : '"';
 
 class SmaliParser extends Parser;
+{
+    public:
+    /** Parser error-reporting function can be overridden in subclass */
+    void reportError(const ANTLR_USE_NAMESPACE(antlr)RecognitionException& ex)
+    {
+        ANTLR_USE_NAMESPACE(std)cerr << ex.toString().c_str() << ANTLR_USE_NAMESPACE(std)endl;
+        throw ex;
+    }
+
+    /** Parser error-reporting function can be overridden in subclass */
+    void reportError(const ANTLR_USE_NAMESPACE(std)string& s)
+    {
+        if ( getFilename()=="" )
+            ANTLR_USE_NAMESPACE(std)cerr << "error: " << s.c_str() << ANTLR_USE_NAMESPACE(std)endl;
+        else
+            ANTLR_USE_NAMESPACE(std)cerr << getFilename().c_str() << ": error: " << s.c_str() << ANTLR_USE_NAMESPACE(std)endl;
+        throw new antlr::RecognitionException(s);
+    }
+
+    /** Parser warning-reporting function can be overridden in subclass */
+    void reportWarning(const ANTLR_USE_NAMESPACE(std)string& s)
+    {
+        if ( getFilename()=="" )
+            ANTLR_USE_NAMESPACE(std)cerr << "warning: " << s.c_str() << ANTLR_USE_NAMESPACE(std)endl;
+        else
+            ANTLR_USE_NAMESPACE(std)cerr << getFilename().c_str() << ": warning: " << s.c_str() << ANTLR_USE_NAMESPACE(std)endl;
+        throw new antlr::RecognitionException(s);
+    }
+}
 
 classDecl : CLASS visualDecl className;
 superDecl : SUPER className;
-className : ID ( SLASH ID )* SEMICOLON;
+sourceDecl : SOURCE STRING;
+fieldDecl : FIELD visualDecl ID COLON className;
+annotationDecl : annotationHeader annotationValue annotationEnd;
 
 protected
+className : sid ( SLASH sid )* SEMICOLON;
+sid : ID | ANNOTATION_STR | METHOD_STR;
 visualDecl : PUBLIC  | PRIVATE;
+annotationHeader : ANNOTATION ID className;
+annotationValue : VALUE ASSIGN LEFT_BRACE (className)* RIGHT_BRACE;
+annotationEnd : END ANNOTATION_STR;

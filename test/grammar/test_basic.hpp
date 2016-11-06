@@ -22,18 +22,40 @@ private:
        std::istringstream input(input_str);
        SmaliLexer lexer(input);
        SmaliParser parser(lexer);
-       f(parser);
+       try{
+           f(parser);
+       }catch(std::exception const& e){
+           std::cout << e.what();
+           throw e;
+       }
    }
 
 public:
    void testParser(){
-       parseString(std::string(".class public Lcom/tencent/mm/plugin/sns/ui/SnsUserUI;"),[](SmaliParser& parser){
-               try{
-               parser.classDecl();
-               }catch(std::exception e){
-               std::cout << e.what();
-               }
+       parseString(".class public Lcom/tencent/mm/plugin/sns/ui/SnsUserUI;",[](SmaliParser& parser){
+               TS_ASSERT_THROWS_NOTHING(parser.classDecl());
+       });
+       parseString(".super Lcom/tencent/mm/plugin/sns/ui/SnsUserUI;",[](SmaliParser& parser){
+               TS_ASSERT_THROWS_NOTHING(parser.superDecl());
                });
+       parseString(".source \"SourceFile\"",[](SmaliParser& parser){
+               TS_ASSERT_THROWS_NOTHING(parser.sourceDecl());
+               });
+       parseString(".source \"SourceFile\"",[](SmaliParser& parser){
+               TS_ASSERT_THROWS_NOTHING(parser.sourceDecl());
+               });
+       parseString(".field private gdM:Lcom/tencent/mm/plugin/sns/ui/ab;",[](SmaliParser& parser){
+               TS_ASSERT_THROWS_NOTHING(parser.fieldDecl());
+               });
+
+       parseString(R"(.annotation system Ldalvik/annotation/MemberClasses;
+    value = {
+        Lcom/tencent/mm/plugin/sns/ui/SnsUserUI$a;
+    }
+.end annotation)", [](SmaliParser& parser){
+               TS_ASSERT_THROWS_NOTHING(parser.annotationDecl());
+               });
+               
 
    }
 };
