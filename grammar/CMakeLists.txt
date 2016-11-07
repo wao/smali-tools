@@ -4,7 +4,13 @@ add_custom_command(OUTPUT SmaliLexer.cpp SmaliLexer.hpp SmaliLexerTokenTypes.hpp
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/smali.antlr
 )
 
+add_custom_command(OUTPUT Re2cLexer.cpp 
+    COMMAND re2c ${CMAKE_CURRENT_SOURCE_DIR}/Re2cLexer.re -o ${CMAKE_CURRENT_BINARY_DIR}/Re2cLexer.cpp
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Re2cLexer.re
+)
+
 include_directories(${ANTLR2_INCLUDE_DIRS})
-add_library(smali STATIC  SmaliLexer.cpp SmaliParser.cpp)
+add_library(smali STATIC  SmaliLexer.cpp SmaliParser.cpp Re2cLexer.cpp)
 
 include_directories(${CMAKE_CURRENT_BINARY_PAHT})
+

@@ -16,6 +16,7 @@ set (smali-tools_VERSION_MINOR 1)
 
 find_package(Boost 1.44.0 REQUIRED filesystem system)
 
+include_directories(${CMAKE_SOURCE_DIR})
 add_subdirectory(grammar)
 add_subdirectory(test/grammar)
 add_subdirectory(external/antlr-2.7.7)
