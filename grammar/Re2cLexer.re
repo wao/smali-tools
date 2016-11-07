@@ -6,6 +6,7 @@
 #include "grammar/Re2cTokenType.hpp"
 #include "antlr/CommonToken.hpp"
 
+#define reportError() reportError( __FILE__, __LINE__, std::string(literal_first, cursor + 1) )
 #define	YYCTYPE		    char
 #define YYCURSOR        cursor
 #define	YYMARKER		yymark
@@ -22,6 +23,7 @@
 
 #define RETURN(token_type) {\
     std::unique_ptr<antlr::CommonToken> token_ptr(new antlr::CommonToken(token_type, std::string(literal_first, cursor)));\
+    data_start_ = cursor - buf_; \
     return antlr::RefToken(token_ptr.release());\
 }
     
@@ -59,7 +61,12 @@ antlr::RefToken Re2cLexer::nextToken()
       ".super" { RETURN(DIR_SUPER); }
       "L" ID ( "/" ID )* ";" { RETURN(CLASSNAME); }
        ID { RETURN(ID); }
-      
+
+       "(" { RETURN(LEFT_PAREN); }
+       ")" { RETURN(RIGHT_PAREN); }
+       "{" { RETURN(LEFT_BRACE); }
+       "}" { RETURN(RIGHT_BRACE); }
+
 
       "\n"        
           { 
@@ -70,6 +77,12 @@ antlr::RefToken Re2cLexer::nextToken()
               nextline(); 
               continue;
           }
+
+      SPACE+ 
+          {
+              continue;
+          }
+        
       
        *
           {
@@ -80,12 +93,13 @@ antlr::RefToken Re2cLexer::nextToken()
 }
 
 void Re2cLexer::readData(int offset, int need_chars){
+    std::cerr << "readData:" << offset << "," << need_chars << std::endl;
     assert( offset >= 0 );
-    assert( offset < BUFLEN );
+    assert( offset < buf_len_ );
     assert( offset == data_end_ ); 
-    assert( offset + need_chars <= BUFLEN );
+    assert( offset + need_chars <= buf_len_ );
 
-    input_stream_.read( (char*)&buf_+offset, BUFLEN - offset );
+    input_stream_.read( buf_+offset, buf_len_ - offset );
     data_end_ += input_stream_.gcount();
 
     if( input_stream_.gcount() < need_chars ){
@@ -101,7 +115,7 @@ void Re2cLexer::readData(int offset, int need_chars){
         }
     }
 
-    assert( data_end_ <= BUFLEN );
+    assert( data_end_ <= buf_len_ );
     assert( data_end_ > 0 );
     assert( data_end_ - offset >= need_chars );
 
@@ -113,15 +127,31 @@ bool Re2cLexer::eof(){
 
 bool Re2cLexer::fillData(int first_char_index_should_keep, int index_to_put_new_data, int need_chars ){
     bool retval = false;
-    assert( index_to_put_new_data == data_end_ ); //it's my assumptation, otherwise, following code need to tune
-    if( need_chars > (BUFLEN - data_end_ ) ){
+
+    std::cerr << "fillData:" << first_char_index_should_keep << "," << index_to_put_new_data << "," << need_chars << std::endl;
+
+    assert( index_to_put_new_data <= data_end_ );
+    //index_to_put_new_data may not reach data_end_
+
+    if( ( index_to_put_new_data + need_chars ) <= data_end_ ){
+        //already meet requirement, should happend
+        assert(false);
+    }
+
+    //adjust if data_end_ != index_to_put_new_data
+    need_chars -= data_end_ - index_to_put_new_data;
+    assert( need_chars > 0 );
+    index_to_put_new_data = data_end_;
+
+    if( need_chars > (buf_len_ - data_end_ ) ){
         retval = true;
 
         //check if we can full fill need_chars after move
-        if( need_chars > (BUFLEN - ( data_end_ - first_char_index_should_keep ))){
+        if( need_chars > (buf_len_ - ( data_end_ - first_char_index_should_keep ))){
             assert(false); //FIXME should handle this
         }
 
+        std::cerr << "moveData:" << data_end_ - first_char_index_should_keep << std::endl;
         std::memmove( buf_, buf_+first_char_index_should_keep, data_end_ - first_char_index_should_keep );
                 
         data_end_ = data_end_ - first_char_index_should_keep;

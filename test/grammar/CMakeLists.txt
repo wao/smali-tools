@@ -8,7 +8,8 @@ if(CXXTEST_FOUND)
     enable_testing()
     CXXTEST_ADD_TEST(unittest_foo foo_test.cc
                       ${CMAKE_CURRENT_SOURCE_DIR}/foo_test.h
-                      ${CMAKE_CURRENT_SOURCE_DIR}/test_basic.hpp)
+                      ${CMAKE_CURRENT_SOURCE_DIR}/test_basic.hpp
+                      ${CMAKE_CURRENT_SOURCE_DIR}/test_re2c.hpp)
                   target_link_libraries(unittest_foo smali myantlr ${Boost_LIBRARIES}) # as needed
 endif()
 
