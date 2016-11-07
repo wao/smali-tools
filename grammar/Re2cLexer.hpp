@@ -1,10 +1,9 @@
+#ifndef __RE2CLEXER_HPP
+#define __RE2CLEXER_HPP
+
 #include "antlr/TokenStream.hpp"
 #include <iostream>
 #include <memory>
-
-class Buffer
-{
-};
 
 class Re2cLexer : public antlr::TokenStream{
 public:
@@ -23,6 +22,11 @@ private:
     char * buf_;
     int data_end_ = 0;
     int data_start_ = 0; 
+    int line_no_ = 1;
+    int col_no_ = 1;
+    char * col_ptr_;
+    bool is_stream_eof_ = false;
+    char * end_pos_ = 0;
 
 
     //read data to 
@@ -33,15 +37,20 @@ private:
     */
     bool fillData(int first_char_index_should_keep, int index_to_put_new_data, int need_chars );
 
-    bool eof();
+    bool eof(char * cursor);
 
-    void reportError( const char * filename, int lineno, const std::string& literal ){
+    void reportError( const char * filename, int lineno, const std::string& literal, char * cursor ){
         //FIXME add log here
         std::cerr << "Error here: " << filename << ":" << lineno << std::endl;
-        std::cerr << "Meet [" << literal << "]" << std::endl;
-        assert(false);
+        std::cerr << "Meet [" << literal << "]" << " at line " << line_no_ << " col " << col_no_ + ( cursor - col_ptr_ ) <<   std::endl;
+        throw std::runtime_error("Re2xLexer error!");
     }
 
-    void nextline(){
+    void nextline(char * cursor){
+        line_no_ ++;
+        col_no_ = 1;
+        col_ptr_ = cursor;
     }
 };
+
+#endif /*__RE2CLEXER_HPP*/

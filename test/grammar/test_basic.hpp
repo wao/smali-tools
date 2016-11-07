@@ -2,7 +2,7 @@
 #include <iostream>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
-#include "grammar/SmaliLexer.hpp"
+#include "grammar/Re2cLexer.hpp"
 #include "grammar/SmaliParser.hpp"
 
 namespace fs = boost::filesystem;
@@ -20,7 +20,7 @@ public:
 private: 
    static void parseString(const std::string& input_str,const std::function<void (SmaliParser&)>& f){
        std::istringstream input(input_str);
-       SmaliLexer lexer(input);
+       Re2cLexer lexer(input);
        SmaliParser parser(lexer);
        try{
            f(parser);

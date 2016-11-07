@@ -8,66 +8,12 @@ options{
     language="Cpp";
 }
 
-class SmaliLexer extends Lexer;
-options{
-    k=3;
-}
-
-tokens{
-    PUBLIC = "public";
-    PRIVATE = "private";
-    FINAL = "final";
-    METHOD_STR = "method";
-    CONSTRUCTOR = "constructor";
-    ANNOTATION_STR = "annotation";
-    VALUE = "value";
-}
-
-CLASS : ".class";
-SUPER : ".super";
-SOURCE : ".source";
-IMPLEMENTS : ".implements";
-FIELD : ".field";
-METHOD : ".method";
-LOCALS : ".locals";
-PROLOGUE : ".prologue";
-LINE : ".line";
-END : ".end";
-ANNOTATION : ".annotation";
-
-WS : ( ' ' | '\t' | '\n' { newline(); } | '\r' )+
-     { $setType(antlr::Token::SKIP); }
-   ;
-
-COMMENT : '#' (
-                  options {
-                  generateAmbigWarnings=false;
-                  } :
-                  { LA(1) != '\n' }? . 
-              )* '\n';
-
-STRING : DOUBLE_QUOTATION_MARK! (
-                 options {
-                 generateAmbigWarnings=false;
-                 } :
-                 { LA(1) != '"' }? .
-                 )* DOUBLE_QUOTATION_MARK!;
-
-SLASH : '/';
-COLON : ':';
-ASSIGN : '=';
-LEFT_BRACE : '{';
-RIGHT_BRACE : '}';
-
-SEMICOLON : ';'; 
-protected
-
-CHAR : 'a'..'z' | 'A'..'Z';
-DIGIT : '0'..'9';
-ID : ( '_' | CHAR ) ( CHAR | DIGIT | '_' | '$' )*;
-DOUBLE_QUOTATION_MARK : '"';
-
+// Using external Re2cLexer now
 class SmaliParser extends Parser;
+options{
+    importVocab=Re2c;
+}
+
 {
     public:
     /** Parser error-reporting function can be overridden in subclass */
@@ -98,16 +44,14 @@ class SmaliParser extends Parser;
     }
 }
 
-classDecl : CLASS visualDecl className;
-superDecl : SUPER className;
-sourceDecl : SOURCE STRING;
-fieldDecl : FIELD visualDecl ID COLON className;
+classDecl : DIR_CLASS visualDecl CLASSNAME;
+superDecl : DIR_SUPER CLASSNAME;
+sourceDecl : DIR_SOURCE STRING;
+fieldDecl : DIR_FIELD visualDecl ID COLON CLASSNAME;
 annotationDecl : annotationHeader annotationValue annotationEnd;
 
 protected
-className : sid ( SLASH sid )* SEMICOLON;
-sid : ID | ANNOTATION_STR | METHOD_STR;
 visualDecl : PUBLIC  | PRIVATE;
-annotationHeader : ANNOTATION ID className;
-annotationValue : VALUE ASSIGN LEFT_BRACE (className)* RIGHT_BRACE;
-annotationEnd : END ANNOTATION_STR;
+annotationHeader : DIR_ANNOTATION ID CLASSNAME;
+annotationValue : ID ASSIGN LEFT_BRACE (CLASSNAME)* RIGHT_BRACE;
+annotationEnd : END_ANNOTATION;
