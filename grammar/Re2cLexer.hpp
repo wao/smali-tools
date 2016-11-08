@@ -15,6 +15,12 @@ public:
 
 	virtual antlr::RefToken nextToken() override;
 
+    enum class Mode { None, Register, TypeId };
+
+    void setMode( Mode new_mode ){
+        mode_ = new_mode;
+    }
+
 private:
     std::istream& input_stream_;
     std::unique_ptr<char[]> buf_mgr_;
@@ -27,6 +33,8 @@ private:
     char * col_ptr_;
     bool is_stream_eof_ = false;
     char * end_pos_ = 0;
+
+    Mode mode_;
 
 
     //read data to 
@@ -44,6 +52,10 @@ private:
         std::cerr << "Error here: " << filename << ":" << lineno << std::endl;
         std::cerr << "Meet [" << literal << "]" << " at line " << line_no_ << " col " << col_no_ + ( cursor - col_ptr_ ) <<   std::endl;
         throw std::runtime_error("Re2xLexer error!");
+    }
+
+    void clearMode(){
+        mode_ = Mode::None;
     }
 
     void nextline(char * cursor){

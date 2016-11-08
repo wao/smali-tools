@@ -9,17 +9,35 @@ class Op
     attr_reader :op, :params, :format, :desc
     def initialize(op, params, format, desc)
         @op = op
-        @params = params
+        @params = process_params(params)
         @format = format
         @desc = desc
     end
 
+    def process_params(params)
+        params.map do |param|
+            param = param.gsub("{", " LEFT_BRACE ")
+            param = param.gsub("}", " RIGHT_BRACE ")
+            param = param.gsub("\bv0\b", "\bvx\b")
+            param = param.gsub(".."," DOTDOT ")
+            param = param.gsub("inline ID"," INLINE inlineID")
+            param = param.gsub("vtable offset"," vtableOffset")
+            param = param.gsub("register range", " vx DOTDOT vy ")
+            param = param.gsub("parameter range", " vx DOTDOT vy ")
+            param
+        end
+    end
+
     def to_lex
-        @op.gsub(/[-\/]/, "_").upcase
+        "INS_"+@op.gsub(/[-\/]/, "_").upcase
+    end
+
+    def to_antlr_rule
+         "    #{to_antlr} : #{to_lex} #{@params.join(" COMMA ")} ;"
     end
 
     def to_antlr
-         "#{@op.gsub(/[-\/]/, "_")} : #{to_lex} #{@params.join(" ")} ;"
+        "ins_#{@op.gsub(/[-\/]/, "_")}"
     end
 end
 
@@ -78,14 +96,25 @@ replace_in_file("tokengen.rb", /###start instruction/, /###end instruction/) do 
     wr.puts "instruction_list=%w[#{optable.ops.map{ |o| o.to_lex }.join(' ')}]"
 end
 
-#replace_in_file( "test.txt", /###start/,  /###end/ ) do |wr|
-    #wr.puts "new data here"
-#end
+replace_in_file( "smali.antlr", /\s*\/\/start auto-gen.*/,  /\s*\/\/end auto-gen.*/ ) do |wr|
+    wr.puts "instruction : #{optable.ops.map{ |o| o.to_antlr }.join(" |\n    ")}]"
+    wr.puts
+
+    optable.ops.each do |op|
+        wr.puts "    //#{op.format}"
+        wr.puts "    //#{op.desc}"
+        wr.puts op.to_antlr_rule
+        wr.puts
+    end
+end
+
+replace_in_file( "Re2cLexer.re", /\s*\/\/start auto-gen.*/,  /\s*\/\/end auto-gen.*/ ) do |wr|
+    optable.ops.sort{ |a,b| b.op <=> a.op }.each do |op|
+        wr.puts "        \"#{op.op}\" { RETURN(#{op.to_lex}); }"
+    end
+end
 
 
-#optable.ops.sort{ |a,b| b.op <=> a.op }.each do |op|
-    #puts "        \"#{op.op}\" : { RETURN(#{op.to_lex}); }"
-#end
 
 #pp optable.ops.map { |op| op.to_antlr }
 
