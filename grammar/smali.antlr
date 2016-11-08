@@ -2,16 +2,11 @@ header "post_include_hpp" {
     // gets inserted after antlr generated includes in the header file
      // outside any generated namespace specifications
 #include "antlr/RecognitionException.hpp"
-#include "grammar/Re2cLexer.hpp"
-#include <iostream>
-
-using Mode = Re2cLexer::Mode;
 }
 
 options{
     language="Cpp";
 }
-
 
 // Using external Re2cLexer now
 class SmaliParser extends Parser;
@@ -20,18 +15,7 @@ options{
 }
 
 {
-    private:
-         Re2cLexer * lexer_ = nullptr;
-
     public:
-         void setLexer(Re2cLexer& lexer){
-             lexer_ = &lexer;
-         }
-
-         void setMode(Mode mode){
-             lexer_->setMode(mode);
-         }
-
     /** Parser error-reporting function can be overridden in subclass */
     void reportError(const ANTLR_USE_NAMESPACE(antlr)RecognitionException& ex)
     {
@@ -53,7 +37,7 @@ options{
     void reportWarning(const ANTLR_USE_NAMESPACE(std)string& s)
     {
         if ( getFilename()=="" )
-            std::cerr << "warning: " << s.c_str() << ANTLR_USE_NAMESPACE(std)endl;
+            ANTLR_USE_NAMESPACE(std)cerr << "warning: " << s.c_str() << ANTLR_USE_NAMESPACE(std)endl;
         else
             ANTLR_USE_NAMESPACE(std)cerr << getFilename().c_str() << ": warning: " << s.c_str() << ANTLR_USE_NAMESPACE(std)endl;
         throw new antlr::RecognitionException(s);
@@ -66,33 +50,8 @@ sourceDecl : DIR_SOURCE STRING;
 fieldDecl : DIR_FIELD visualDecl ID COLON CLASSNAME;
 annotationDecl : annotationHeader annotationValue annotationEnd;
 
-registerDecl { setMode(Mode::Register); } :  REGISTER;
-
-
-/*
-vx : ID;
-vy : ID;
-vz : ID;
-
-lit8 : LIT8;
-lit16 : LIT16;
-
-vtableOffset : LIT16;
-offset : LIT16;
-inlineID: LIT16;
-
-type_id : CLASSNAME;
-field_id : CLASSNAME ARROW ID COLON CLASSNAME;
-methodtocall : CLASSNAME ARROW ID LEFT_PAREN CLASSNAME* RIGHT_BRACE CLASSNAME;
-*/
-
-
-
 protected
 visualDecl : PUBLIC  | PRIVATE;
 annotationHeader : DIR_ANNOTATION ID CLASSNAME;
 annotationValue : ID ASSIGN LEFT_BRACE (CLASSNAME)* RIGHT_BRACE;
 annotationEnd : END_ANNOTATION;
-
-//start auto-gen instructions
-//end auto-gen instructions
