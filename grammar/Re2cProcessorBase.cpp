@@ -45,8 +45,8 @@ bool Re2cProcessorBase::eof(CharType * cursor){
     return false;
 }
 
-bool Re2cProcessorBase::fillData(int first_char_index_should_keep, int index_to_put_new_data, int need_chars ){
-    bool retval = false;
+int Re2cProcessorBase::doFillData(int first_char_index_should_keep, int index_to_put_new_data, int need_chars ){
+    int retval = 0;
 
     std::cerr << "fillData:" << first_char_index_should_keep << "," << index_to_put_new_data << "," << need_chars << std::endl;
 
@@ -71,6 +71,7 @@ bool Re2cProcessorBase::fillData(int first_char_index_should_keep, int index_to_
             assert(false); //FIXME should handle this
         }
 
+        retval = first_char_index_should_keep;
         std::cerr << "moveData:" << data_end_ - first_char_index_should_keep << std::endl;
         std::memmove( buf_, buf_+first_char_index_should_keep, data_end_ - first_char_index_should_keep );
                 

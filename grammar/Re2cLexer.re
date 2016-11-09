@@ -6,25 +6,20 @@
 #include "grammar/Re2cTokenType.hpp"
 #include "antlr/CommonToken.hpp"
 
-#define reportError() reportError( __FILE__, __LINE__, std::string(literal_first, cursor + 1), cursor )
+#define reportError() reportError( __FILE__, __LINE__, std::string(getLiteralFirst(), cursor + 1), cursor )
 #define	YYCTYPE		    char
 #define YYCURSOR        cursor
 #define	YYMARKER		yymark
 #define YYLIMIT         yylimit
 #define YYFILL(n) {\
-    if( fillData( literal_first - buf_, cursor - buf_, n ) ){ \
-        int offset = literal_first - buf_; \
-        literal_first = buf_; \
-        cursor -= offset; \
-        col_ptr_ -= offset; \
-        yymark -= offset; \
-        yylimit = buf_ + data_end_; \
+    int offset = fillData( n, cursor, yylimit, yymark ); \
+    if( offset > 0 ){ \
     } \
 }
 
 #define RETURN(token_type) {\
-    std::unique_ptr<antlr::CommonToken> token_ptr(new antlr::CommonToken(token_type, std::string(literal_first, cursor)));\
-    data_start_ = cursor - buf_; \
+    std::unique_ptr<antlr::CommonToken> token_ptr(new antlr::CommonToken(token_type, std::string(getLiteralFirst(), cursor)));\
+    finishMatch(cursor); \
     std::cerr << "Return token:" << token_type << std::endl; \
     return antlr::RefToken(token_ptr.release());\
 }
@@ -33,14 +28,14 @@
 antlr::RefToken Re2cLexer::nextToken()
 {
     char ch;
-    char *cursor = buf_ + data_start_;
+    char *cursor;
     char *yymark;
-    char *yylimit = buf_ + data_end_;
+    char *yylimit;
+
+    loadBuf( cursor, yylimit );
 
     for(;;) {
-        char * literal_first = cursor;
-        col_no_ += cursor - col_ptr_;
-        col_ptr_ = cursor;
+       startNewMatch(cursor);
 
         /*!re2c
       re2c:indent:top = 1;
