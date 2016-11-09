@@ -7,24 +7,25 @@
 
 #include "grammar/Re2cProcessorBase.hpp"
 
+enum class LexerMode { None, fieldName, returnTypeId, parameterTypeIds };
+
 class Re2cLexer : public antlr::TokenStream, public Re2cProcessorBase{
 public:
     using Re2cProcessorBase::Re2cProcessorBase;
 
 	virtual antlr::RefToken nextToken() override;
 
-    enum class Mode { None, Register, TypeId };
 
-    void setMode( Mode new_mode ){
+    void setMode( LexerMode new_mode ){
         mode_ = new_mode;
     }
 
 private:
-    Mode mode_;
+    LexerMode mode_;
 
 
     void clearMode(){
-        mode_ = Mode::None;
+        mode_ = LexerMode::None;
     }
 };
 
