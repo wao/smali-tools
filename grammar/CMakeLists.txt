@@ -15,7 +15,7 @@ add_custom_command(OUTPUT Re2cLexer.cpp
 )
 
 include_directories(${ANTLR2_INCLUDE_DIRS})
-add_library(smali STATIC  SmaliParser.cpp Re2cLexer.cpp)
+add_library(smali STATIC  SmaliParser.cpp Re2cLexer.cpp Re2cProcessorBase.cpp)
 
 include_directories(${CMAKE_CURRENT_BINARY_PAHT})
 
